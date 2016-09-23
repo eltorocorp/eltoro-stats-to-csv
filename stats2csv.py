@@ -128,7 +128,7 @@ for org in orgs:
         field_list = ''
         for f in fields:
             if f[0] in ol.keys():
-                if type(ol[f[0]]) == unicode:
+                if type(ol[f[0]]) in [unicode, str]:
                     field_list += '"' + ol[f[0]] + '",'
                 else:
                     field_list += str(ol[f[0]]) + ','
