@@ -3,16 +3,21 @@
 import requests, sys, ast
 from datetime import date,timedelta
 
-def getOrgs(org_id):
+def get_orgs(org_id):
     _orgs = [org_id]
-    orgs_resp = requests.get(baseUrl + '/orgs', headers=headers)
+    orgs_resp = requests.get(base_url + '/orgs', headers=headers)
     for org in orgs_resp.json():
         if org_id in org['parents']:
             _orgs.push(org['_id'])
     return _orgs
 
-def getIdList(collection):
-    return
+def get_collection(collection, org_list):
+    result = []
+    for org in org_list:
+        query = '/' + collection + '?orgId=' + org
+        coll = requests.get(base_url + query, headers=headers).json()
+        result += coll
+    return result
 
 def buildCSV(level):
     return
@@ -52,12 +57,12 @@ except IndexError:
 login = { 'username': user, 'password': passw }
 
 #Prod gateway
-baseUrl = 'https://api-prod.eltoro.com'
+base_url = 'https://api-prod.eltoro.com'
 
 #dev gateway
-#baseUrl = 'https://api-dev.eltoro.com'
+#base_url = 'https://api-dev.eltoro.com'
 
-login_resp = requests.post(baseUrl + '/users/login', login)
+login_resp = requests.post(base_url + '/users/login', login)
 
 try:
     token = login_resp.json()[unicode('token')]
@@ -72,7 +77,7 @@ headers = {
 }
 
 if org_id == 'not set':
-    user_resp = requests.get(baseUrl + '/users/' + user_id, headers=headers)
+    user_resp = requests.get(base_url + '/users/' + user_id, headers=headers)
     try:
         orgs = user_resp.json()[unicode('roles')].keys()
     except:
@@ -87,7 +92,7 @@ if org_id == 'not set':
 #get list of orderlines
 
 #make a list of orgs and suborgs
-orgs = getOrgs(org_id)
+orgs = get_orgs(org_id)
 
 #Print column headings
 #  [ <key>, <label> ]
@@ -114,39 +119,37 @@ for i in range(0, 24):
 print row1
 
 #Write a row for each orderline belonging to each org
-for org in orgs:
-    ol_query = '/orderlines?orgId=' + org_id
-    ols = requests.get(baseUrl + ol_query, headers=headers).json()
-    for ol in ols:
-        if 'campaign' in ol.keys() and 'name' in ol['campaign'].keys():
-            ol['campaignName'] = ol['campaign']['name']
-        stats_query = (
-            '/stats?start=' +
-            start +
-            '&stop=' +
-            stop +
-            '&granularity=' +
-            granularity+
-            '&orgId=' +
-            org_id +
-            '&campaignId=' +
-            '&orderLineId=' +
-            ol['_id']
-        )
-        stats = requests.get(baseUrl + stats_query).json()
-        data = ""
-        for hour in stats:
-            data += str(hour['clicks']) + ',' + str(hour['imps']) + ','
-        field_list = ''
-        for f in fields:
-            if f[0] in ol.keys():
-                if type(ol[f[0]]) in [unicode, str]:
-                    field_list += '"' + ol[f[0]] + '",'
-                else:
-                    field_list += str(ol[f[0]]) + ','
+ols = get_collection('orderlines', orgs)
+for ol in ols:
+    if 'campaign' in ol.keys() and 'name' in ol['campaign'].keys():
+        ol['campaignName'] = ol['campaign']['name']
+    stats_query = (
+        '/stats?start=' +
+        start +
+        '&stop=' +
+        stop +
+        '&granularity=' +
+        granularity+
+        '&orgId=' +
+        org_id +
+        '&campaignId=' +
+        '&orderLineId=' +
+        ol['_id']
+    )
+    stats = requests.get(base_url + stats_query).json()
+    data = ""
+    for hour in stats:
+        data += str(hour['clicks']) + ',' + str(hour['imps']) + ','
+    field_list = ''
+    for f in fields:
+        if f[0] in ol.keys():
+            if type(ol[f[0]]) in [unicode, str]:
+                field_list += '"' + ol[f[0]] + '",'
             else:
-                field_list += ','
-        print field_list + data
+                field_list += str(ol[f[0]]) + ','
+        else:
+            field_list += ','
+    print field_list + data
 
 
 sys.exit()
