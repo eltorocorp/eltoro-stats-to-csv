@@ -78,20 +78,24 @@ for org in orgs_resp.json():
         orgs.push(org['_id'])
 
 #Print column headings
-fields = ['_id',
-        'campaignId',
-        'orgId',
-        'targetType',
-        'creativeType',
-        'name',
-        'campaignName',
-        'refId',
-        'start',
-        'stop'
-        ]
+#  [ <key>, <label> ]
+#
+fields = [
+    ['_id', 'orderlineId'],
+    ['campaignId','campaignId'],
+    ['orgId','orgId'],
+    ['targetType','targetType'],
+    ['creativeType','creativeType'],
+    ['name','OrdName'],
+    ['campaignName','campaignName'],
+    ['refId','refId'],
+    ['start','start'],
+    ['stop','stop'],
+    ]
+
 row1 = ''
 for f in fields:
-    row1 += f + ','
+    row1 += f[1] + ','
 row1 = row1[:-1]
 for i in range(0, 24):
     row1 += ',clicks' + str(i) + ',imps' + str(i)
@@ -123,28 +127,14 @@ for org in orgs:
             data += str(hour['clicks']) + ',' + str(hour['imps']) + ','
         field_list = ''
         for f in fields:
-            if f in ol.keys():
-                if type(ol[f]) == 'str':
-                    field_list += ol[f] + ','
+            if f[0] in ol.keys():
+                if type(ol[f[0]]) == 'str':
+                    field_list += ol[f[0]] + ','
                 else:
-                    field_list += str(ol[f]) + ','
+                    field_list += str(ol[f[0]]) + ','
             else:
                 field_list += ','
         print field_list + data
 
 
 sys.exit()
-print baseUrl + stats_query
-print headers
-
-try:
-    raw = ast.literal_eval(stats_resp.text)
-    print granularity + ',clicks,imps'
-    for result in raw:
-        print result['start_date'] + ',' + str(result['clicks']) + ',' + str(result['imps'])
-except KeyError:
-    print "There was an error, please check your arguments and try again."
-    print stats_resp.text
-except TypeError:
-    print "Your query returned no results. please check your arguments and try again."
-
