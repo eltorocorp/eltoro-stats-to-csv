@@ -3,6 +3,7 @@
 import requests, sys, ast
 from datetime import date,timedelta
 
+# Functions
 def get_orgs(org_id):
     _orgs = [org_id]
     orgs_resp = requests.get(base_url + '/orgs', headers=headers)
@@ -19,12 +20,38 @@ def get_collection(collection, org_list):
         result += coll
     return result
 
+def stats_query(ids):
+    query = (
+        '/stats?start=' +
+        start +
+        '&stop=' +
+        stop +
+        '&granularity=' +
+        granularity+
+        '&orgId=' +
+        org_id +
+        '&campaignId=' + ids['campaign'] +
+        '&orderLineId=' + ids['orderline'] +
+        '&ceativeId=' + ids['creative']
+    )
+    return requests.get(base_url + query).json()
+
+def build_ids(level, _id):
+    ids = {
+        'campaign': '',
+        'orderline': '',
+        'creative': '',
+        }
+    ids[level] = _id;
+    return ids
+
 def buildCSV(level):
     return
 
 def writeCSV(data):
     return
 
+# Parse arguments
 try:
     try:
         start = sys.argv[3]
@@ -53,6 +80,7 @@ try:
     org_id = sys.argv[6]
 except IndexError:
     org_id = 'not set'
+
 
 login = { 'username': user, 'password': passw }
 
@@ -95,8 +123,7 @@ if org_id == 'not set':
 orgs = get_orgs(org_id)
 
 #Print column headings
-#  [ <key>, <label> ]
-#
+#  [ <key>, <label> ]#
 fields = [
     ['_id', '"orderlineId"'],
     ['campaignId','"campaignId"'],
@@ -123,20 +150,8 @@ ols = get_collection('orderlines', orgs)
 for ol in ols:
     if 'campaign' in ol.keys() and 'name' in ol['campaign'].keys():
         ol['campaignName'] = ol['campaign']['name']
-    stats_query = (
-        '/stats?start=' +
-        start +
-        '&stop=' +
-        stop +
-        '&granularity=' +
-        granularity+
-        '&orgId=' +
-        org_id +
-        '&campaignId=' +
-        '&orderLineId=' +
-        ol['_id']
-    )
-    stats = requests.get(base_url + stats_query).json()
+    ids = build_ids('orderline', ol['_id'])
+    stats = stats_query(ids)
     data = ""
     for hour in stats:
         data += str(hour['clicks']) + ',' + str(hour['imps']) + ','
