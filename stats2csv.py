@@ -81,16 +81,16 @@ for org in orgs_resp.json():
 #  [ <key>, <label> ]
 #
 fields = [
-    ['_id', 'orderlineId'],
-    ['campaignId','campaignId'],
-    ['orgId','orgId'],
-    ['targetType','targetType'],
-    ['creativeType','creativeType'],
-    ['name','OrdName'],
-    ['campaignName','campaignName'],
-    ['refId','refId'],
-    ['start','start'],
-    ['stop','stop'],
+    ['_id', '"orderlineId"'],
+    ['campaignId','"campaignId"'],
+    ['orgId','"orgId"'],
+    ['targetType','"targetType"'],
+    ['creativeType','"creativeType"'],
+    ['name','"OrdName"'],
+    ['campaignName','"campaignName"'],
+    ['refId','"refId"'],
+    ['start','"start"'],
+    ['stop','"stop"'],
     ]
 
 row1 = ''
@@ -98,7 +98,7 @@ for f in fields:
     row1 += f[1] + ','
 row1 = row1[:-1]
 for i in range(0, 24):
-    row1 += ',clicks' + str(i) + ',imps' + str(i)
+    row1 += ',"clicks' + str(i) + '","imps' + str(i) + '"'
 print row1
 
 #Write a row for each orderline belonging to each org
@@ -128,8 +128,8 @@ for org in orgs:
         field_list = ''
         for f in fields:
             if f[0] in ol.keys():
-                if type(ol[f[0]]) == 'str':
-                    field_list += ol[f[0]] + ','
+                if type(ol[f[0]]) == unicode:
+                    field_list += '"' + ol[f[0]] + '",'
                 else:
                     field_list += str(ol[f[0]]) + ','
             else:
