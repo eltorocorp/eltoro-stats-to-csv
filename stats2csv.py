@@ -3,6 +3,23 @@
 import requests, sys, ast
 from datetime import date,timedelta
 
+def getOrgs(org_id):
+    _orgs = [org_id]
+    orgs_resp = requests.get(baseUrl + '/orgs', headers=headers)
+    for org in orgs_resp.json():
+        if org_id in org['parents']:
+            _orgs.push(org['_id'])
+    return _orgs
+
+def getIdList(collection):
+    return
+
+def buildCSV(level):
+    return
+
+def writeCSV(data):
+    return
+
 try:
     try:
         start = sys.argv[3]
@@ -70,12 +87,7 @@ if org_id == 'not set':
 #get list of orderlines
 
 #make a list of orgs and suborgs
-orgs = [org_id]
-
-orgs_resp = requests.get(baseUrl + '/orgs', headers=headers)
-for org in orgs_resp.json():
-    if org_id in org['parents']:
-        orgs.push(org['_id'])
+orgs = getOrgs(org_id)
 
 #Print column headings
 #  [ <key>, <label> ]
