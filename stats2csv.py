@@ -17,7 +17,17 @@ def get_collection(collection, org_list):
     for org in org_list:
         query = '/' + collection + '?orgId=' + org
         coll = requests.get(base_url + query, headers=headers).json()
-        result += coll
+        if 'denorm' in indices[collection].keys():
+            for c in coll:
+                if indices[collection]['denorm'] in c.keys():
+                    ls = c[indices[collection]['denorm']]
+                    for l in ls:
+                        c[indices[collection]['denorm'] + 'Id'] = l['_id']
+                        result.append(c)
+                else:
+                    result.append(c)
+        else:
+            result += coll
     return result
 
 def stats_query(ids):
@@ -146,7 +156,8 @@ fields = {
         ['_id', 'campaignId']
     ],
     'creatives': [
-        ['_id', 'creativeId']
+        ['_id', 'creativeId'],
+        ['orderLinesId', 'orderLineId']
     ],
 }
 
@@ -162,6 +173,7 @@ indices = {
     'creatives': {
         'name': 'creatives',
         'file': creative_csv,
+        'denorm': 'orderLines',
     },
 }
 
