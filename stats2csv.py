@@ -171,7 +171,9 @@ for level in indices.keys():
         row1 += f[1] + ','
     row1 = row1[:-1]
     for i in range(0, 24):
-        row1 += ',"clicks' + str(i) + '","imps' + str(i) + '"'
+        row1 += (',"clicks' + str(start) + ' ' + str(i) +
+            '","imps' + str(start) + ' ' + str(i) + '"'
+        )
     indices[level]['file'].write(row1 + '\n')
     row1 = ''
 
