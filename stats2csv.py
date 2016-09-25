@@ -82,6 +82,10 @@ try:
 except IndexError:
     org_id = 'not set'
 
+#create output files
+creative_csv = open('creative' + str(date.today()) + '.csv', 'w')
+orderline_csv = open('orderline' + str(date.today()) + '.csv', 'w')
+campaign_csv = open('campaign' + str(date.today()) + '.csv', 'w')
 
 login = { 'username': user, 'password': passw }
 
@@ -146,14 +150,29 @@ fields = {
     ],
 }
 
-for level in ['orderlines', 'campaigns', 'creatives']:
+indices = {
+    'orderlines': {
+        'name': 'orderlines',
+        'file': orderline_csv,
+    },
+    'campaigns': {
+        'name': 'campaigns',
+        'file': campaign_csv,
+    },
+    'creatives': {
+        'name': 'creatives',
+        'file': creative_csv,
+    },
+}
+
+for level in indices.keys():
     row1 = ''
     for f in fields[level]:
         row1 += f[1] + ','
     row1 = row1[:-1]
     for i in range(0, 24):
         row1 += ',"clicks' + str(i) + '","imps' + str(i) + '"'
-    print row1
+    indices[level]['file'].write(row1 + '\n')
     row1 = ''
 
     #Write a row for each orderline belonging to each org
@@ -162,8 +181,8 @@ for level in ['orderlines', 'campaigns', 'creatives']:
         ids = build_ids(level, coll['_id'])
         stats = stats_query(ids)
         data = ""
-        for hour in stats:
-            data += str(hour['clicks']) + ',' + str(hour['imps']) + ','
+        for obs in stats:
+            data += str(obs['clicks']) + ',' + str(obs['imps']) + ','
         field_list = ''
         for f in fields[level]:
             if f[0] in coll.keys():
@@ -173,7 +192,7 @@ for level in ['orderlines', 'campaigns', 'creatives']:
                     field_list += str(coll[f[0]]) + ','
             else:
                 field_list += ','
-        print field_list + data
+        indices[level]['file'].write(field_list + data + '\n')
 
 
 sys.exit()
