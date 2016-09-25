@@ -30,17 +30,18 @@ def stats_query(ids):
         granularity+
         '&orgId=' +
         org_id +
-        '&campaignId=' + ids['campaign'] +
-        '&orderLineId=' + ids['orderline'] +
-        '&ceativeId=' + ids['creative']
+        '&campaignId=' + ids['campaigns'] +
+        '&orderLineId=' + ids['orderlines'] +
+        '&ceativeId=' + ids['creatives']
     )
-    return requests.get(base_url + query).json()
+    r = requests.get(base_url + query).json()
+    return r
 
 def build_ids(level, _id):
     ids = {
-        'campaign': '',
-        'orderline': '',
-        'creative': '',
+        'campaigns': '',
+        'orderlines': '',
+        'creatives': '',
         }
     ids[level] = _id;
     return ids
@@ -124,47 +125,55 @@ orgs = get_orgs(org_id)
 
 #Print column headings
 #  [ <key>, <label> ]#
-fields = [
-    ['_id', '"orderlineId"'],
-    ['campaignId','"campaignId"'],
-    ['orgId','"orgId"'],
-    ['targetType','"targetType"'],
-    ['creativeType','"creativeType"'],
-    ['name','"OrdName"'],
-    ['campaignName','"campaignName"'],
-    ['refId','"refId"'],
-    ['start','"start"'],
-    ['stop','"stop"'],
-    ]
+fields = {
+    'orderlines': [
+        ['_id', '"orderlineId"'],
+        ['campaignId','"campaignId"'],
+        ['orgId','"orgId"'],
+        ['targetType','"targetType"'],
+        ['creativeType','"creativeType"'],
+        ['name','"OrdName"'],
+        ['campaignName','"campaignName"'],
+        ['refId','"refId"'],
+        ['start','"start"'],
+        ['stop','"stop"'],
+    ],
+    'campaigns': [
+        ['_id', 'campaignId']
+    ],
+    'creatives': [
+        ['_id', 'creativeId']
+    ],
+}
 
-row1 = ''
-for f in fields:
-    row1 += f[1] + ','
-row1 = row1[:-1]
-for i in range(0, 24):
-    row1 += ',"clicks' + str(i) + '","imps' + str(i) + '"'
-print row1
+for level in ['orderlines', 'campaigns', 'creatives']:
+    row1 = ''
+    for f in fields[level]:
+        row1 += f[1] + ','
+    row1 = row1[:-1]
+    for i in range(0, 24):
+        row1 += ',"clicks' + str(i) + '","imps' + str(i) + '"'
+    print row1
+    row1 = ''
 
-#Write a row for each orderline belonging to each org
-ols = get_collection('orderlines', orgs)
-for ol in ols:
-    if 'campaign' in ol.keys() and 'name' in ol['campaign'].keys():
-        ol['campaignName'] = ol['campaign']['name']
-    ids = build_ids('orderline', ol['_id'])
-    stats = stats_query(ids)
-    data = ""
-    for hour in stats:
-        data += str(hour['clicks']) + ',' + str(hour['imps']) + ','
-    field_list = ''
-    for f in fields:
-        if f[0] in ol.keys():
-            if type(ol[f[0]]) in [unicode, str]:
-                field_list += '"' + ol[f[0]] + '",'
+    #Write a row for each orderline belonging to each org
+    colls = get_collection(level, orgs)
+    for coll in colls:
+        ids = build_ids(level, coll['_id'])
+        stats = stats_query(ids)
+        data = ""
+        for hour in stats:
+            data += str(hour['clicks']) + ',' + str(hour['imps']) + ','
+        field_list = ''
+        for f in fields[level]:
+            if f[0] in coll.keys():
+                if type(coll[f[0]]) in [unicode, str]:
+                    field_list += '"' + coll[f[0]] + '",'
+                else:
+                    field_list += str(coll[f[0]]) + ','
             else:
-                field_list += str(ol[f[0]]) + ','
-        else:
-            field_list += ','
-    print field_list + data
+                field_list += ','
+        print field_list + data
 
 
 sys.exit()
