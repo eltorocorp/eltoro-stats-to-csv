@@ -17,6 +17,13 @@ def get_collection(collection, org_list):
     for org in org_list:
         query = '/' + collection + '?orgId=' + org
         coll = requests.get(base_url + query, headers=headers).json()
+
+        #Ad hoc handling for campaignName
+        if collection == 'orderlines':
+            for c in coll:
+                if 'campaign' in c.keys() and 'name' in c['campaign'].keys():
+                    c['campaignName'] = c['campaign']['name']
+
         if 'denorm' in indices[collection].keys():
             for c in coll:
                 if indices[collection]['denorm'] in c.keys():
@@ -143,17 +150,17 @@ fields = {
     'orderlines': [
         ['_id', '"orderlineId"'],
         ['campaignId','"campaignId"'],
-        ['orgId','"orgId"'],
         ['targetType','"targetType"'],
         ['creativeType','"creativeType"'],
-        ['name','"OrdName"'],
+        ['name','"orderlineName"'],
         ['campaignName','"campaignName"'],
         ['refId','"refId"'],
         ['start','"start"'],
         ['stop','"stop"'],
     ],
     'campaigns': [
-        ['_id', 'campaignId']
+        ['_id', 'campaignId'],
+        ['orgId', 'orgId']
     ],
     'creatives': [
         ['_id', 'creativeId'],
