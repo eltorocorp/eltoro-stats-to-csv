@@ -185,25 +185,16 @@ indices = {
 }
 
 for level in indices.keys():
-    row1 = ''
+    row1 = 'Date,Hour,Clicks,Imps,'
     for f in fields[level]:
         row1 += f[1] + ','
     row1 = row1[:-1]
-    for i in range(0, 24):
-        row1 += (',"clicks' + str(start) + ' ' + str(i) +
-            '","imps' + str(start) + ' ' + str(i) + '"'
-        )
     indices[level]['file'].write(row1 + '\n')
     row1 = ''
 
     #Write a row for each orderline belonging to each org
     colls = get_collection(level, orgs)
     for coll in colls:
-        ids = build_ids(level, coll['_id'])
-        stats = stats_query(ids)
-        data = ""
-        for obs in stats:
-            data += str(obs['clicks']) + ',' + str(obs['imps']) + ','
         field_list = ''
         for f in fields[level]:
             if f[0] in coll.keys():
@@ -213,7 +204,16 @@ for level in indices.keys():
                     field_list += str(coll[f[0]]) + ','
             else:
                 field_list += ','
-        indices[level]['file'].write(field_list + data + '\n')
-
+        field_list = field_list[:-1]
+        ids = build_ids(level, coll['_id'])
+        stats = stats_query(ids)
+        i = 0
+        for obs in stats:
+            indices[level]['file'].write(str(start) + ',')
+            indices[level]['file'].write(str(i) + ',')
+            indices[level]['file'].write(str(obs['clicks']) + ',')
+            indices[level]['file'].write(str(obs['imps']) + ',')
+            indices[level]['file'].write(field_list + '\n')
+            i += 1
 
 sys.exit()
