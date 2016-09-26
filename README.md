@@ -21,3 +21,8 @@ time_frame of hour
 Run the included windows bat script as a scheduled task.  Be sure to edit the
 last lines and add your username/password, and make sure the server has python
 installed - link is in the batch script
+
+The first time you set this up on windows, you need to run the "Setup.bat"
+script on windows as well, to install the requests module for python.
+
+In a linux environment, jsut do a sudo pip install requests
