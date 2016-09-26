@@ -11,6 +11,8 @@ any reporting functional desired from our portal.
 python stats2csv <username> <password> <start> <end> <time_frame (default: "hour")>
 ```
 
+In a linux environment, you need to also have the requests module - just run 'sudo pip install requests' in addition to python2.x installed
+
 start and end should be provided in the %Y-%m-%d or %Y-%m-%d %H:%M:%S format
 
 If the dates or time_frame is left off, it defaults to yesterday's date with
@@ -25,4 +27,3 @@ installed - link is in the batch script
 The first time you set this up on windows, you need to run the "Setup.bat"
 script on windows as well, to install the requests module for python.
 
-In a linux environment, jsut do a sudo pip install requests
