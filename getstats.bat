@@ -80,5 +80,4 @@ set AWSDT=%yyyy%-%mm%-%dd%
 
 REM REQUIRES PYTHON TO BE INSTALLED ON THE SERVER - RECOMMEND INSTALLING FROM: https://www.python.org/downloads/windows/ use a Python 2 latest version
 
-c:\python27\python.exe stats2csv.py username password > %AWSDT%.csv
-
+c:\python27\python.exe stats2csv.py username password
