@@ -18,6 +18,15 @@ start and end should be provided in the `%Y-%m-%d` or `%Y-%m-%d %H:%M:%S` format
 If the dates or time_frame is left off, it defaults to yesterday's date with
 time_frame of hour.
 
+
+### Example
+
+```
+python stats2csv myusername mypassword 2016-01-01 2016-01-31 day
+```
+
+### Scheduling Usage
+
 Scheduling this task to be run as a daily `cron` would be quite simple, 
 just make sure it is run with *yesterday's* date range, since *today* would not be complete.
 
@@ -29,16 +38,18 @@ installed - link is in the batch script.
 
 ## Initial Setup
 
-The first time you set this up on **windows**, you need to run the `setup.bat` script. 
+The first time you set this up on **windows**, you need to run the `setup.bat` script.
+
 This will install the requests module for python.
 
 In a **linux or OSX** environment, you need to also have the requests module.
+
 Just run `sudo pip install requests` in addition to python2.x installed.
 
-## Extending This
+## Extending / Next Steps
 
-Obviously, your needs may vary.  
-
+* You could setup this script as a cron or scheduled task
 * You could automatically FTP or POST or import the CSV within your network
-* If you do not want to build a CSV from your stats, just use the API response directly
+* If you do not want to build a CSV from your stats, just use the API response directly *(an array of objects)*
+* You can query for a single `campaignId`, `orderLineId`, or `creativeId` and get more specific stats
 * If you are doing more than quering stats, use this as a basic guide for API interactions and build your own tools
