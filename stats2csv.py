@@ -19,7 +19,7 @@ def get_collection(collection, org_list):
         coll = requests.get(base_url + query, headers=headers).json()
 
         #Ad hoc handling for campaignName
-        if collection == 'orderlines':
+        if collection == 'orderLines':
             for c in coll:
                 if 'campaign' in c.keys() and 'name' in c['campaign'].keys():
                     c['campaignName'] = c['campaign']['name']
@@ -37,7 +37,7 @@ def get_collection(collection, org_list):
             result += coll
     return result
 
-def stats_query(ids):
+def stats_query(ids, headers):
     query = (
         '/stats?start=' +
         start +
@@ -48,16 +48,16 @@ def stats_query(ids):
         '&orgId=' +
         org_id +
         '&campaignId=' + ids['campaigns'] +
-        '&orderLineId=' + ids['orderlines'] +
+        '&orderLineId=' + ids['orderLines'] +
         '&ceativeId=' + ids['creatives']
     )
-    r = requests.get(base_url + query).json()
+    r = requests.get(base_url + query, headers=headers).json()
     return r
 
 def build_ids(level, _id):
     ids = {
         'campaigns': '',
-        'orderlines': '',
+        'orderLines': '',
         'creatives': '',
         }
     ids[level] = _id;
@@ -101,7 +101,7 @@ except IndexError:
 
 #create output files
 creative_csv = open('creative' + str(date.today()) + '.csv', 'w')
-orderline_csv = open('orderline' + str(date.today()) + '.csv', 'w')
+orderLine_csv = open('orderLine' + str(date.today()) + '.csv', 'w')
 campaign_csv = open('campaign' + str(date.today()) + '.csv', 'w')
 
 login = { 'username': user, 'password': passw }
@@ -139,7 +139,7 @@ if org_id == 'not set':
         print "You belong to multiple orgs. Please provide an org id as the last argument"
         sys.exit()
 
-#get list of orderlines
+#get list of orderLines
 
 #make a list of orgs and suborgs
 orgs = get_orgs(org_id)
@@ -147,12 +147,12 @@ orgs = get_orgs(org_id)
 #Print column headings
 #  [ <key>, <label> ]#
 fields = {
-    'orderlines': [
-        ['_id', '"orderlineId"'],
+    'orderLines': [
+        ['_id', '"orderLineId"'],
         ['campaignId','"campaignId"'],
         ['targetType','"targetType"'],
         ['creativeType','"creativeType"'],
-        ['name','"orderlineName"'],
+        ['name','"orderLineName"'],
         ['campaignName','"campaignName"'],
         ['refId','"refId"'],
         ['start','"start"'],
@@ -164,14 +164,14 @@ fields = {
     ],
     'creatives': [
         ['_id', 'creativeId'],
-        ['orderLinesId', 'orderLineId']
+        ['orderLineIds', 'orderLineId']
     ],
 }
 
 indices = {
-    'orderlines': {
-        'name': 'orderlines',
-        'file': orderline_csv,
+    'orderLines': {
+        'name': 'orderLines',
+        'file': orderLine_csv,
     },
     'campaigns': {
         'name': 'campaigns',
@@ -192,7 +192,7 @@ for level in indices.keys():
     indices[level]['file'].write(row1 + '\n')
     row1 = ''
 
-    #Write a row for each orderline belonging to each org
+    #Write a row for each orderLine belonging to each org
     colls = get_collection(level, orgs)
     for coll in colls:
         field_list = ''
@@ -200,13 +200,15 @@ for level in indices.keys():
             if f[0] in coll.keys():
                 if type(coll[f[0]]) in [unicode, str]:
                     field_list += '"' + coll[f[0]] + '",'
+                elif f[0] == 'orderLineIds':
+                    field_list += '"' + coll[f[0]][0] + '",'
                 else:
                     field_list += str(coll[f[0]]) + ','
             else:
                 field_list += ','
         field_list = field_list[:-1]
         ids = build_ids(level, coll['_id'])
-        stats = stats_query(ids)
+        stats = stats_query(ids, headers)
         i = 0
         for obs in stats:
             indices[level]['file'].write(str(start) + ',')
