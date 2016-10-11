@@ -12,6 +12,27 @@ def get_orgs(org_id):
             _orgs.push(org['_id'])
     return _orgs
 
+def valid_campaign_list(org_list):
+    result = []
+    for org in org_list:
+        query = '/campaigns?orgId=' + org
+        coll = requests.get(base_url + query, headers=headers).json()
+        for c in coll:
+            if c['status'] == 20 or c['status'] == 99:
+                result.append(c['_id'])
+    return result;
+
+def valid_ol_list(org_list, camp_id_list):
+    result = []
+    for org in org_list:
+        query = '/orderLines?=orgId=' + org
+        coll = requests.get(base_url + query, headers=headers).json()
+        for c in coll:
+            if c['campaignId'] in camp_id_list:
+                result.append(c['_id'])
+    return result;
+
+
 def get_collection(collection, org_list):
     result = []
     for org in org_list:
@@ -49,7 +70,7 @@ def stats_query(ids, headers):
         org_id +
         '&campaignId=' + ids['campaigns'] +
         '&orderLineId=' + ids['orderLines'] +
-        '&ceativeId=' + ids['creatives']
+        '&creativeId=' + ids['creatives']
     )
     r = requests.get(base_url + query, headers=headers).json()
     return r
@@ -184,7 +205,20 @@ indices = {
     },
 }
 
+valid_camps = valid_campaign_list(orgs)
+valid_ols = valid_ol_list(orgs, valid_camps)
+
+def check_row(row, good_list, collection):
+    if 'campaignId' in row.keys() and row['campaignId'] in good_list:
+        return True
+    if collection == 'campaigns' and row['_id'] in good_list:
+        return True
+    if collection == 'creatives' and set(row['orderLineIds']) & set(valid_ols):
+        return True
+    return False
+
 for level in indices.keys():
+    rows = []
     row1 = 'Date,Hour,Clicks,Imps,'
     for f in fields[level]:
         row1 += f[1] + ','
@@ -193,29 +227,30 @@ for level in indices.keys():
     row1 = ''
 
     #Write a row for each orderLine belonging to each org
-    colls = get_collection(level, orgs)
-    for coll in colls:
-        field_list = ''
-        for f in fields[level]:
-            if f[0] in coll.keys():
-                if type(coll[f[0]]) in [unicode, str]:
-                    field_list += '"' + coll[f[0]] + '",'
-                elif f[0] == 'orderLineIds':
-                    field_list += '"' + coll[f[0]][0] + '",'
+    rows = get_collection(level, orgs)
+    for row in rows:
+        if check_row(row, valid_camps, level):
+            field_list = ''
+            for f in fields[level]:
+                if f[0] in row.keys():
+                    if type(row[f[0]]) in [unicode, str]:
+                        field_list += '"' + row[f[0]] + '",'
+                    elif f[0] == 'orderLineIds':
+                        field_list += '"' + row[f[0]][0] + '",'
+                    else:
+                        field_list += str(row[f[0]]) + ','
                 else:
-                    field_list += str(coll[f[0]]) + ','
-            else:
-                field_list += ','
-        field_list = field_list[:-1]
-        ids = build_ids(level, coll['_id'])
-        stats = stats_query(ids, headers)
-        i = 0
-        for obs in stats:
-            indices[level]['file'].write(str(start) + ',')
-            indices[level]['file'].write(str(i) + ',')
-            indices[level]['file'].write(str(obs['clicks']) + ',')
-            indices[level]['file'].write(str(obs['imps']) + ',')
-            indices[level]['file'].write(field_list + '\n')
-            i += 1
+                    field_list += ','
+            field_list = field_list[:-1]
+            ids = build_ids(level, row['_id'])
+            stats = stats_query(ids, headers)
+            i = 0
+            for obs in stats:
+                indices[level]['file'].write(str(start) + ',')
+                indices[level]['file'].write(str(i) + ',')
+                indices[level]['file'].write(str(obs['clicks']) + ',')
+                indices[level]['file'].write(str(obs['imps']) + ',')
+                indices[level]['file'].write(field_list + '\n')
+                i += 1
 
 sys.exit()
