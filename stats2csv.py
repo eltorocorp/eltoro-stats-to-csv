@@ -3,6 +3,12 @@
 import requests, sys, ast
 from datetime import date,timedelta
 
+#Prod gateway
+base_url = 'https://api-prod.eltoro.com'
+
+#dev gateway
+#base_url = 'https://api-dev.eltoro.com'
+
 # Functions
 def get_orgs(org_id):
     _orgs = [org_id]
@@ -44,6 +50,11 @@ def get_collection(collection, org_list):
             for c in coll:
                 if 'campaign' in c.keys() and 'name' in c['campaign'].keys():
                     c['campaignName'] = c['campaign']['name']
+                elif 'campaignId' in c.keys():
+                    query = '/campaigns/' + c['campaignId']
+                    camp = requests.get(base_url + query, headers=headers).json()
+                    c['campaignName'] = camp['name']
+
 
         if 'denorm' in indices[collection].keys():
             for c in coll:
@@ -127,11 +138,6 @@ campaign_csv = open('campaign' + str(date.today()) + '.csv', 'w')
 
 login = { 'username': user, 'password': passw }
 
-#Prod gateway
-base_url = 'https://api-prod.eltoro.com'
-
-#dev gateway
-#base_url = 'https://api-dev.eltoro.com'
 
 login_resp = requests.post(base_url + '/users/login', login)
 
