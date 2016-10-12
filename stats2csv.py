@@ -132,9 +132,9 @@ except IndexError:
     org_id = 'not set'
 
 #create output files
-creative_csv = open('creative' + str(date.today()) + '.csv', 'w')
-orderLine_csv = open('orderLine' + str(date.today()) + '.csv', 'w')
-campaign_csv = open('campaign' + str(date.today()) + '.csv', 'w')
+creative_csv = open('creative' + str(start) + '.csv', 'w')
+orderLine_csv = open('orderLine' + str(start) + '.csv', 'w')
+campaign_csv = open('campaign' + str(start) + '.csv', 'w')
 
 login = { 'username': user, 'password': passw }
 
