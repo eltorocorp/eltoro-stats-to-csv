@@ -31,7 +31,7 @@ def valid_campaign_list(org_list):
 def valid_ol_list(org_list, camp_id_list):
     result = []
     for org in org_list:
-        query = '/orderLines?=orgId=' + org
+        query = '/orderLines?orgId=' + org
         coll = requests.get(base_url + query, headers=headers).json()
         for c in coll:
             if c['campaignId'] in camp_id_list:
@@ -191,7 +191,8 @@ fields = {
     ],
     'creatives': [
         ['_id', 'creativeId'],
-        ['orderLineIds', 'orderLineId']
+        ['orderLineIds', 'orderLineId'],
+        ['name', 'creativeName']
     ],
 }
 
