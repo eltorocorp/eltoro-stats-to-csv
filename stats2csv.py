@@ -13,7 +13,7 @@ base_url = 'https://api-prod.eltoro.com'
 def get_orgs(org_id):
     _orgs = [org_id]
     orgs_resp = requests.get(base_url + '/orgs', headers=headers)
-    for org in orgs_resp.json():
+    for org in orgs_resp.json()['results']:
         if org_id in org['parents']:
             _orgs.push(org['_id'])
     return _orgs
@@ -22,7 +22,7 @@ def valid_campaign_list(org_list):
     result = []
     for org in org_list:
         query = '/campaigns?orgId=' + org
-        coll = requests.get(base_url + query, headers=headers).json()
+        coll = requests.get(base_url + query, headers=headers).json()['results']
         for c in coll:
             if c['status'] == 20 or c['status'] == 99:
                 result.append(c['_id'])
@@ -32,7 +32,7 @@ def valid_ol_list(org_list, camp_id_list):
     result = []
     for org in org_list:
         query = '/orderLines?orgId=' + org
-        coll = requests.get(base_url + query, headers=headers).json()
+        coll = requests.get(base_url + query, headers=headers).json()['results']
         for c in coll:
             if c['campaignId'] in camp_id_list:
                 result.append(c['_id'])
@@ -41,9 +41,14 @@ def valid_ol_list(org_list, camp_id_list):
 
 def get_collection(collection, org_list):
     result = []
+    if collection == 'creatives':
+        suffix = '&pagingLimit=200'
+    else:
+        suffix = ''
     for org in org_list:
-        query = '/' + collection + '?orgId=' + org
-        coll = requests.get(base_url + query, headers=headers).json()
+        query = '/' + collection + '?orgId=' + org + suffix
+        print query
+        coll = requests.get(base_url + query, headers=headers).json()['results']
 
         #Ad hoc handling for campaignName
         if collection == 'orderLines':
