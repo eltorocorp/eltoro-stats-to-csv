@@ -41,11 +41,17 @@ def valid_ol_list(org_list, camp_id_list):
 
 def get_collection(collection, org_list):
     result = []
-    suffix = '&pagingLimit=200'
+    suffix = '&pagingLimit=10'
     for org in org_list:
+        page = 1
         query = '/' + collection + '?orgId=' + org + suffix
-        print query
-        coll = requests.get(base_url + query, headers=headers).json()['results']
+        resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
+        coll = resp['results']
+        paging = resp['paging']
+        while paging['total'] > paging['limit'] * page:
+            page += 1
+            resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
+            coll += resp['results']
 
         #Ad hoc handling for campaignName
         if collection == 'orderLines':
