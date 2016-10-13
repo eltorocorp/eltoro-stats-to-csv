@@ -41,10 +41,7 @@ def valid_ol_list(org_list, camp_id_list):
 
 def get_collection(collection, org_list):
     result = []
-    if collection == 'creatives':
-        suffix = '&pagingLimit=200'
-    else:
-        suffix = ''
+    suffix = '&pagingLimit=200'
     for org in org_list:
         query = '/' + collection + '?orgId=' + org + suffix
         print query
