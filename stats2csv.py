@@ -114,11 +114,11 @@ try:
     try:
         start = sys.argv[3]
     except:
-        start = str(date.today() - timedelta(days=1))#+" 00:00:00"
+        start = str(date.today() - timedelta(days=1))# + "%2007:00:00"
     try:
         stop = sys.argv[4]
     except:
-        stop = str(date.today() - timedelta(days=1))#+" 23:59:59"
+        stop = str(date.today() - timedelta(days=0))# + "%2006:59:59"
     try:
         granularity = sys.argv[5]
     except:
@@ -261,11 +261,12 @@ for level in indices.keys():
             stats = stats_query(ids, headers)
             i = 0
             for obs in stats:
-                indices[level]['file'].write(str(start) + ',')
-                indices[level]['file'].write(str(i) + ',')
-                indices[level]['file'].write(str(obs['clicks']) + ',')
-                indices[level]['file'].write(str(obs['imps']) + ',')
-                indices[level]['file'].write(field_list + '\n')
+                if i > 6 and i < 31:
+                    indices[level]['file'].write(str(start) + ',')
+                    indices[level]['file'].write(str(i - 7) + ',')
+                    indices[level]['file'].write(str(obs['clicks']) + ',')
+                    indices[level]['file'].write(str(obs['imps']) + ',')
+                    indices[level]['file'].write(field_list + '\n')
                 i += 1
 
 sys.exit()
