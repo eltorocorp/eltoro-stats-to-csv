@@ -200,7 +200,8 @@ fields = {
     'creatives': [
         ['_id', 'creativeId'],
         ['orderLineIds', 'orderLineId'],
-        ['name', 'creativeName']
+        ['name', 'creativeName'],
+        ['size', 'size']
     ],
 }
 
