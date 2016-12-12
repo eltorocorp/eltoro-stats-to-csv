@@ -15,7 +15,7 @@ def get_orgs(org_id):
     orgs_resp = requests.get(base_url + '/orgs', headers=headers)
     for org in orgs_resp.json()['results']:
         if org_id in org['parents']:
-            _orgs.push(org['_id'])
+            _orgs.append(org['_id'])
     return _orgs
 
 def valid_campaign_list(org_list):
@@ -268,5 +268,7 @@ for level in indices.keys():
                     indices[level]['file'].write(str(obs['imps']) + ',')
                     indices[level]['file'].write(field_list + '\n')
                 i += 1
+        else:
+            print row
 
 sys.exit()
