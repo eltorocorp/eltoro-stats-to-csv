@@ -268,7 +268,5 @@ for level in indices.keys():
                     indices[level]['file'].write(str(obs['imps']) + ',')
                     indices[level]['file'].write(field_list + '\n')
                 i += 1
-        else:
-            print row
 
 sys.exit()
