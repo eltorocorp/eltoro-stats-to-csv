@@ -77,7 +77,14 @@ if /I %dd% LSS 10 set dd=0%dd%
 REM AWS date variables
 set AWSDT=%yyyy%-%mm%-%dd%
 
+set TODAY=%date:~6,4%-%date:~3,2%-%date:~0,2%
+REM echo.%TODAY%
 
 REM REQUIRES PYTHON TO BE INSTALLED ON THE SERVER - RECOMMEND INSTALLING FROM: https://www.python.org/downloads/windows/ use a Python 2 latest version
 
+REM TODAY'S AUTO UPDATED
+c:\python27\python.exe stats2csv.py username password %TODAY%
+REM YESTERDAY, DEFAULT IF NO DATE GIVEN
 c:\python27\python.exe stats2csv.py username password
+
+
