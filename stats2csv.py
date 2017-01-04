@@ -108,6 +108,23 @@ def get_orderLines(org_list):
                             }
                 #    print creative
                     creatives.append(creative)
+                try:
+                    for cre in c["creativesIdsDetached"]:
+                        try:
+                            size=cre["size"]
+                        except:
+                            size=0
+                            pass
+                        creative={
+                                'creativeId':cre["_id"],
+                                'orderLineId':olid,
+                                'creativeName':cre["name"],
+                                'size':size,
+                                }
+                    #    print creative
+                        creatives.append(creative)
+                except:
+                    pass
     return camplist,ols,creatives
 
 # this runs the query for the detail stats for each option
