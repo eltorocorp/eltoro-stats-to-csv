@@ -39,7 +39,8 @@ def get_campaigns(org_list):
         for c in coll:
             try:
                 if c['status'] == 20 or c['status'] == 99:# and c["stop"] > recentdate :
-                    result.append(c)
+                    if c['_id'] in ['58641f64a6ba51bb4290c755','586420cca6ba51bb4290c819','58642262a6ba51bb4290cb36','5864269fa6ba51bb4290d355','586426f0a6ba51bb4290d3d0']:
+                        result.append(c)
             except:
                 pass
     return result
@@ -145,6 +146,27 @@ def stats_query(ids, headers):
     r = requests.get(base_url + query, headers=headers).json()
     #print query
     return r
+
+def stats_query_tmp(ids, headers):
+    query = (
+        '/narollup-results?start_date=' +
+        start +
+        '&end_date=' +
+        stop +
+        '&time_frame=' +
+        granularity
+    )
+    if str(ids['orderLines']) <> "" and ids['creatives'] == "":
+        query = query + '&order_line_id=' + ids['orderLines']
+    if str(ids['campaigns']) <> "":
+        query = query + '&campaign_id=' + ids['campaigns']
+    if str(ids['creatives']) <> "":
+        query = query + '&order_line_id=' + ids['orderLines'] + '&creative_id=' + ids['creatives']
+# '&org_id=' + org_id +
+    base_url="http://172.30.1.151:9002"
+    r = requests.get(base_url + query).json()
+    print query
+    return r["results"]
 
 # Parse arguments and verify some things, default others
 try:
@@ -282,9 +304,13 @@ for level in indices.keys():
             ids['creatives']=row["creativeId"]
             ids['orderLines']=row["orderLineId"]
 
-        stats = stats_query(ids, headers)
+#        stats = stats_query(ids, headers)
+#        print stats
+        stats = stats_query_tmp(ids, headers)
+        print stats
         i = 0
         for obs in stats:
+            print obs
             if i > 4 and i < 29:
                 indices[level]['file'].write(str(start) + ',')
                 indices[level]['file'].write(str(i - 5) + ',')
