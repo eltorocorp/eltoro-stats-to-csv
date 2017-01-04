@@ -63,12 +63,12 @@ def get_campaigns(org_list):
 
 def get_orderLines(campaigns):
     collection = "orderLines"
-    result = []
+    ols = []
+    creatives=[]
     suffix = '&pagingLimit=10'
     for camp in campaigns:
         page = 1
         query = '/' + collection + '?campaignId=' + camp["_id"] + suffix
-        print query
         resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
         coll = resp['results']
         paging = resp['paging']
@@ -76,10 +76,33 @@ def get_orderLines(campaigns):
             page += 1
             resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
             coll += resp['results']
+    allols = coll
 
-        for c in coll:
-            result.append(c)
-    return result
+    for c in allols:
+        oldata = {
+            ##  CSV Field Header: Field to Populate it wit
+                "orderLineId":c["_id"],
+                "campaignId":c["campaignId"],
+                "targetType":c["targetType"],
+                "creativeType":c["creativeType"],
+                "orderLineName":c["name"],
+                "campaignName":c["campaignName"],
+                "refId":c["refId"],
+                "start":c["start"],
+                "stop":c["stop"]
+        }
+        ols.append(oldata)
+
+        for cre in c["creatives"]:
+            creative={
+                    "creativeId":cre["_id"],
+                    "orderLineId":cre["orderLineIds"],
+                    "creativeName":cre["name"],
+                    "size":cre["size"],
+                    }
+            creatives.append(creative)
+
+    return ols,creatives
 
 
 def stats_query(ids, headers):
@@ -226,7 +249,9 @@ indices = {
 orgs = get_orgs(org_id)
 print orgs
 print len(get_campaigns(orgs))
-print len(get_orderLines(get_campaigns(orgs)))
+ols,creatives=get_orderLines(get_campaigns(orgs))
+print len(ols)
+print len(creatives)
 sys.exit()
 
 
