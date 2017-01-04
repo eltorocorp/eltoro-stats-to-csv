@@ -27,7 +27,7 @@ python stats2csv myusername mypassword 2016-01-01 2016-01-31 day
 
 ### Scheduling Usage
 
-Scheduling this task to be run as a daily `cron` would be quite simple, 
+Scheduling this task to be run as a daily `cron` would be quite simple,
 just make sure it is run with *yesterday's* date range, since *today* would not be complete.
 
 ## Windows Usage
@@ -52,4 +52,7 @@ Just run `sudo pip install requests` in addition to python2.x installed.
 * You could automatically FTP or POST or import the CSV within your network
 * If you do not want to build a CSV from your stats, just use the API response directly *(an array of objects)*
 * You can query for a single `campaignId`, `orderLineId`, or `creativeId` and get more specific stats
-* If you are doing more than quering stats, use this as a basic guide for API interactions and build your own tools
+* If you are doing more than quering stats, use this as a basic guide for API interactions and build your own tool
+
+
+
