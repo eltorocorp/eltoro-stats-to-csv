@@ -267,9 +267,9 @@ for level in indices.keys():
         stats = stats_query(ids, headers)
         i = 0
         for obs in stats:
-            if i > 6 and i < 31:
+            if i > 4 and i < 29:
                 indices[level]['file'].write(str(start) + ',')
-                indices[level]['file'].write(str(i - 7) + ',')
+                indices[level]['file'].write(str(i - 5) + ',')
                 indices[level]['file'].write(str(obs['clicks']) + ',')
                 indices[level]['file'].write(str(obs['imps']) + ',')
                 for f,value in row.iteritems():
