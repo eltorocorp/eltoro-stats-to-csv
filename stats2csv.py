@@ -18,28 +18,7 @@ def get_orgs(org_id):
             _orgs.append(org['_id'])
     return _orgs
 
-def valid_campaign_list(org_list):
-    result = []
-    for org in org_list:
-        query = '/campaigns?orgId=' + org
-        coll = requests.get(base_url + query, headers=headers).json()['results']
-        for c in coll:
-            if c['status'] == 20 or c['status'] == 99 and c["stop"] :
-                result.append(c['_id'])
-    return result;
-
-
-def valid_ol_list(org_list, camp_id_list):
-    result = []
-    for org in org_list:
-        query = '/orderLines?orgId=' + org
-        coll = requests.get(base_url + query, headers=headers).json()['results']
-        for c in coll:
-            if c['campaignId'] in camp_id_list:
-                result.append(c['_id'])
-    return result;
-
-
+## get campaign top level list
 def get_campaigns(org_list):
     collection = "campaigns"
     result = []
@@ -65,7 +44,7 @@ def get_campaigns(org_list):
                 pass
     return result
 
-
+## This gets all of the orderline data, and preps the data for output - add additional fields here
 def get_orderLines(org_list):
 
     campaigns = get_campaigns(org_list)
@@ -131,7 +110,7 @@ def get_orderLines(org_list):
                     creatives.append(creative)
     return camplist,ols,creatives
 
-
+# this runs the query for the detail stats for each option
 def stats_query(ids, headers):
     query = (
         '/stats?start=' +
@@ -147,25 +126,10 @@ def stats_query(ids, headers):
         '&creativeId=' + ids['creatives']
     )
     r = requests.get(base_url + query, headers=headers).json()
-    #print query
+    print query
     return r
 
-def build_ids(level, _id):
-    ids = {
-        'campaigns': '',
-        'orderLines': '',
-        'creatives': '',
-        }
-    ids[level] = _id;
-    return ids
-
-def buildCSV(level):
-    return
-
-def writeCSV(data):
-    return
-
-# Parse arguments
+# Parse arguments and verify some things, default others
 try:
     try:
         start = sys.argv[3]
@@ -200,6 +164,9 @@ creative_csv = open('creative' + str(start) + '.csv', 'w')
 orderLine_csv = open('orderLine' + str(start) + '.csv', 'w')
 campaign_csv = open('campaign' + str(start) + '.csv', 'w')
 
+
+## Do all of the login stuff here
+
 login = { 'username': user, 'password': passw }
 
 
@@ -217,6 +184,8 @@ headers = {
     "Authorization": ("Bearer " + str(token))
 }
 
+
+## Check valid login and org id
 if org_id == 'not set':
     user_resp = requests.get(base_url + '/users/' + user_id, headers=headers)
     try:
@@ -230,12 +199,7 @@ if org_id == 'not set':
         print "You belong to multiple orgs. Please provide an org id as the last argument"
         sys.exit()
 
-#get list of orderLines
-
-#make a list of orgs and suborgs
-#Print column headings
-#  [ <key>, <label> ]#
-
+#Used for making the csvs by names
 indices = {
     'orderLines': {
         'name': 'orderLines',
@@ -251,21 +215,18 @@ indices = {
         'denorm': 'orderLines',
     },
 }
-#orgs = get_orgs(org_id)
-#print orgs
-#print str(len(get_campaigns(orgs)))+ " campaigns"
-#ols,creatives=get_orderLines(get_campaigns(orgs))
-#print str(len(ols)) + " order lines"
-#print str(len(creatives)) + " creatives"
-#sys.exit()
 
-### Use this:
+## Get the org from the login that happened
 orgs = get_orgs(org_id)
+## now go get the data from the functions above
 campaigns,ols,creatives = get_orderLines(orgs)
 
+
+# meat an Potato's
 for level in indices.keys():
     print level + " running"
     rows = []
+    ids={}
     val = ""
     row1 = 'Date,Hour,Clicks,Imps,'
 
@@ -291,12 +252,17 @@ for level in indices.keys():
     for row in rows:
         #ids = build_ids(level, row[id])
         if level == "campaigns":
-            ids[level]=row["campaignId"]
+            ids['campaigns']=row["campaignId"]
+            ids['creatives']=""
+            ids['orderLines']=""
         if level == "orderLines":
-            ids[level]=row["orderlineId"]
+            ids['campaigns']=""
+            ids['creatives']=""
+            ids['orderLines']=row["orderLineId"]
         if level == "creatives":
-            ids[level]=row["creativeId"]
-            ids["orderLines"]=row["orderlineId"]
+            ids['campaigns']=""
+            ids['creatives']=row["creativeId"]
+            ids['orderLines']=row["orderLineId"]
 
         stats = stats_query(ids, headers)
         i = 0
