@@ -83,15 +83,15 @@ def get_orderLines(org_list):
                     pass
                 oldata = {
                     ##  CSV Field Header: Field to Populate it wit
-                        'orderLineId':c["_id"],
-                        'campaignId':c["campaignId"],
                         'targetType':c["targetType"],
                         'creativeType':c["creativeType"],
                         'orderLineName':c["name"],
-                        'campaignName':c["campaign"]["name"],
-                        'refId':refId,
+                        'campaignId':c["campaignId"],
                         'start':c["start"],
-                        'stop':c["stop"]
+                        'campaignName':c["campaign"]["name"],
+                        'stop':c["stop"],
+                        'refId':refId,
+                        'orderLineId':c["_id"]
                 }
                 ols.append(oldata)
                 olid=c["_id"]
@@ -104,8 +104,7 @@ def get_orderLines(org_list):
                     creative={
                             'creativeId':cre["_id"],
                             'orderLineId':olid,
-                            'creativeName':cre["name"],
-                            'size':size,
+                            'creativeName':cre["name"]
                             }
                 #    print creative
                     creatives.append(creative)
@@ -119,8 +118,7 @@ def get_orderLines(org_list):
                         creative={
                                 'creativeId':cre["_id"],
                                 'orderLineId':olid,
-                                'creativeName':cre["name"],
-                                'size':size,
+                                'creativeName':cre["name"]
                                 }
                     #    print creative
                         creatives.append(creative)
