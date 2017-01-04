@@ -143,7 +143,7 @@ def stats_query(ids, headers):
         '&creativeId=' + ids['creatives']
     )
     r = requests.get(base_url + query, headers=headers).json()
-    print query
+    #print query
     return r
 
 # Parse arguments and verify some things, default others
@@ -236,6 +236,7 @@ indices = {
 ## Get the org from the login that happened
 orgs = get_orgs(org_id)
 ## now go get the data from the functions above
+print "Getting data for the report"
 campaigns,ols,creatives = get_orderLines(orgs)
 
 
