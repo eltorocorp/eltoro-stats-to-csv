@@ -40,7 +40,8 @@ def valid_ol_list(org_list, camp_id_list):
     return result;
 
 
-def get_collection(collection, org_list):
+def get_campaigns(org_list):
+    collection = "campaigns"
     result = []
     suffix = '&pagingLimit=10'
     for org in org_list:
@@ -54,21 +55,32 @@ def get_collection(collection, org_list):
             resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
             coll += resp['results']
 
-        #Ad hoc handling for campaignName
-        if collection == 'orderLines':
-            for c in coll:
-                if 'campaign' in c.keys() and 'name' in c['campaign'].keys():
-                    c['campaignName'] = c['campaign']['name']
-                elif 'campaignId' in c.keys():
-                    query = '/campaigns/' + c['campaignId']
-                    camp = requests.get(base_url + query, headers=headers).json()
-                    c['campaignName'] = camp['name']
-
-        if collection == 'campaigns':
-            for c in coll:
-                if c['status'] == 20 or c['status'] == 99 and c["stop"] :
-                    result.append(c)
+        for c in coll:
+            if c['status'] == 20 or c['status'] == 99 and c["stop"]:
+                result.append(c)
     return result
+
+
+def get_orderLines(campaigns):
+    collection = "orderLines"
+    result = []
+    suffix = '&pagingLimit=10'
+    for camp in campaigns:
+        page = 1
+        query = '/' + collection + '?campaignId=' + camp["_id"] + suffix
+        print query
+        resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
+        coll = resp['results']
+        paging = resp['paging']
+        while paging['total'] > paging['limit'] * page:
+            page += 1
+            resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
+            coll += resp['results']
+
+        for c in coll:
+            result.append(c)
+    return result
+
 
 def stats_query(ids, headers):
     query = (
@@ -213,7 +225,8 @@ indices = {
 }
 orgs = get_orgs(org_id)
 print orgs
-print len(get_collection('campaigns',orgs))
+print len(get_campaigns(orgs))
+print len(get_orderLines(get_campaigns(orgs)))
 sys.exit()
 
 
