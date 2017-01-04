@@ -66,10 +66,14 @@ def get_campaigns(org_list):
     return result
 
 
-def get_orderLines(campaigns):
+def get_orderLines(org_list):
+
+    campaigns = get_campaigns(org_list)
+
     collection = "orderLines"
     ols = []
     creatives=[]
+    camplist=[]
     suffix = '&pagingLimit=10'
     page = 1
     query = '/' + collection + "?" + suffix
@@ -81,6 +85,12 @@ def get_orderLines(campaigns):
         resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
         coll += resp['results']
     allols = coll
+    for camp in campaigns:
+        thecamp = {
+                'campaignId':camp["_id"],
+                'orgId':camp["orgId"]
+                }
+        camplist.append(thecamp)
 
     for c in allols:
         for camp in campaigns:
@@ -93,15 +103,15 @@ def get_orderLines(campaigns):
                     pass
                 oldata = {
                     ##  CSV Field Header: Field to Populate it wit
-                        "orderLineId":c["_id"],
-                        "campaignId":c["campaignId"],
-                        "targetType":c["targetType"],
-                        "creativeType":c["creativeType"],
-                        "orderLineName":c["name"],
-                        "campaignName":c["campaign"]["name"],
-                        "refId":refId,
-                        "start":c["start"],
-                        "stop":c["stop"]
+                        'orderLineId':c["_id"],
+                        'campaignId':c["campaignId"],
+                        'targetType':c["targetType"],
+                        'creativeType':c["creativeType"],
+                        'orderLineName':c["name"],
+                        'campaignName':c["campaign"]["name"],
+                        'refId':refId,
+                        'start':c["start"],
+                        'stop':c["stop"]
                 }
                 ols.append(oldata)
                 olid=c["_id"]
@@ -112,15 +122,14 @@ def get_orderLines(campaigns):
                         size=0
                         pass
                     creative={
-                            "creativeId":cre["_id"],
-                            "orderLineId":olid,
-                            "creativeName":cre["name"],
-                            "size":size,
+                            'creativeId':cre["_id"],
+                            'orderLineId':olid,
+                            'creativeName':cre["name"],
+                            'size':size,
                             }
                 #    print creative
                     creatives.append(creative)
-
-    return ols,creatives
+    return camplist,ols,creatives
 
 
 def stats_query(ids, headers):
@@ -138,7 +147,7 @@ def stats_query(ids, headers):
         '&creativeId=' + ids['creatives']
     )
     r = requests.get(base_url + query, headers=headers).json()
-    print query
+    #print query
     return r
 
 def build_ids(level, _id):
@@ -226,29 +235,6 @@ if org_id == 'not set':
 #make a list of orgs and suborgs
 #Print column headings
 #  [ <key>, <label> ]#
-fields = {
-    'orderLines': [
-        ['_id', '"orderLineId"'],
-        ['campaignId','"campaignId"'],
-        ['targetType','"targetType"'],
-        ['creativeType','"creativeType"'],
-        ['name','"orderLineName"'],
-        ['campaignName','"campaignName"'],
-        ['refId','"refId"'],
-        ['start','"start"'],
-        ['stop','"stop"'],
-    ],
-    'campaigns': [
-        ['_id', 'campaignId'],
-        ['orgId', 'orgId']
-    ],
-    'creatives': [
-        ['_id', 'creativeId'],
-        ['orderLineIds', 'orderLineId'],
-        ['name', 'creativeName'],
-        ['size', 'size']
-    ],
-}
 
 indices = {
     'orderLines': {
@@ -265,66 +251,69 @@ indices = {
         'denorm': 'orderLines',
     },
 }
+#orgs = get_orgs(org_id)
+#print orgs
+#print str(len(get_campaigns(orgs)))+ " campaigns"
+#ols,creatives=get_orderLines(get_campaigns(orgs))
+#print str(len(ols)) + " order lines"
+#print str(len(creatives)) + " creatives"
+#sys.exit()
+
+### Use this:
 orgs = get_orgs(org_id)
-print orgs
-print str(len(get_campaigns(orgs)))+ " campaigns"
-ols,creatives=get_orderLines(get_campaigns(orgs))
-print str(len(ols)) + " order lines"
-print str(len(creatives)) + " creatives"
-sys.exit()
-
-
-
-#valid_camps = valid_campaign_list(orgs)
-#valid_ols = valid_ol_list(orgs, valid_camps)
-
-def check_row(row, good_list, collection):
-    if 'campaignId' in row.keys() and row['campaignId'] in good_list:
-        return True
-    if collection == 'campaigns' and row['_id'] in good_list:
-        return True
-    if collection == 'creatives' and set(row['orderLineIds']) & set(valid_ols):
-        return True
-    return False
-
-
+campaigns,ols,creatives = get_orderLines(orgs)
 
 for level in indices.keys():
+    print level + " running"
     rows = []
+    val = ""
     row1 = 'Date,Hour,Clicks,Imps,'
-    for f in fields[level]:
-        row1 += f[1] + ','
+
+    #Write a row for each collection belonging to each org
+    if level == 'orderLines':
+        rows = ols
+        id = 'orderLineId'
+
+    if level == 'creatives':
+        rows = creatives
+        id = 'creativeId'
+
+    if level == 'campaigns':
+        rows = campaigns
+        id = 'campaignId'
+
+    for f,value in rows[0].iteritems():
+        row1 += str(f) + ','
     row1 = row1[:-1]
     indices[level]['file'].write(row1 + '\n')
-    row1 = ''
 
-    #Write a row for each orderLine belonging to each org
-    if level == 'campaigns':
-        rows = get_campaigns(orgs)
-        for row in rows:
-            #if check_row(row, valid_camps, level):
-            field_list = ''
-            for f in fields[level]:
-                if f[0] in row.keys():
-                    if type(row[f[0]]) in [unicode, str]:
-                        field_list += '"' + row[f[0]] + '",'
-                    elif f[0] == 'orderLineIds':
-                        field_list += '"' + row[f[0]][0] + '",'
+    print "Running Stats for " + level
+    for row in rows:
+        #ids = build_ids(level, row[id])
+        if level == "campaigns":
+            ids[level]=row["campaignId"]
+        if level == "orderLines":
+            ids[level]=row["orderlineId"]
+        if level == "creatives":
+            ids[level]=row["creativeId"]
+            ids["orderLines"]=row["orderlineId"]
+
+        stats = stats_query(ids, headers)
+        i = 0
+        for obs in stats:
+            if i > 6 and i < 31:
+                indices[level]['file'].write(str(start) + ',')
+                indices[level]['file'].write(str(i - 7) + ',')
+                indices[level]['file'].write(str(obs['clicks']) + ',')
+                indices[level]['file'].write(str(obs['imps']) + ',')
+                for f,value in row.iteritems():
+                    if isinstance(value,basestring):
+                        val = val + '"' + str(value) + '"'+ ","
                     else:
-                        field_list += str(row[f[0]]) + ','
-                else:
-                    field_list += ','
-            field_list = field_list[:-1]
-            ids = build_ids(level, row['_id'])
-            stats = stats_query(ids, headers)
-            i = 0
-            for obs in stats:
-                if i > 6 and i < 31:
-                    indices[level]['file'].write(str(start) + ',')
-                    indices[level]['file'].write(str(i - 7) + ',')
-                    indices[level]['file'].write(str(obs['clicks']) + ',')
-                    indices[level]['file'].write(str(obs['imps']) + ',')
-                    indices[level]['file'].write(field_list + '\n')
-                i += 1
+                        val = val + str(value)+ ","
+                val = val[:-1]
+                indices[level]['file'].write(val + '\n')
+                val = ""
+            i += 1
 
 sys.exit()
