@@ -138,6 +138,7 @@ def stats_query(ids, headers):
         '&creativeId=' + ids['creatives']
     )
     r = requests.get(base_url + query, headers=headers).json()
+    print query
     return r
 
 def build_ids(level, _id):
@@ -274,8 +275,8 @@ sys.exit()
 
 
 
-valid_camps = valid_campaign_list(orgs)
-valid_ols = valid_ol_list(orgs, valid_camps)
+#valid_camps = valid_campaign_list(orgs)
+#valid_ols = valid_ol_list(orgs, valid_camps)
 
 def check_row(row, good_list, collection):
     if 'campaignId' in row.keys() and row['campaignId'] in good_list:
@@ -298,9 +299,10 @@ for level in indices.keys():
     row1 = ''
 
     #Write a row for each orderLine belonging to each org
-    rows = get_collection(level, orgs)
-    for row in rows:
-        if check_row(row, valid_camps, level):
+    if level == 'campaigns':
+        rows = get_campaigns(orgs)
+        for row in rows:
+            #if check_row(row, valid_camps, level):
             field_list = ''
             for f in fields[level]:
                 if f[0] in row.keys():
