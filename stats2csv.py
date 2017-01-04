@@ -24,9 +24,10 @@ def valid_campaign_list(org_list):
         query = '/campaigns?orgId=' + org
         coll = requests.get(base_url + query, headers=headers).json()['results']
         for c in coll:
-            if c['status'] == 20 or c['status'] == 99:
+            if c['status'] == 20 or c['status'] == 99 and c["stop"] :
                 result.append(c['_id'])
     return result;
+
 
 def valid_ol_list(org_list, camp_id_list):
     result = []
@@ -63,18 +64,10 @@ def get_collection(collection, org_list):
                     camp = requests.get(base_url + query, headers=headers).json()
                     c['campaignName'] = camp['name']
 
-
-        if 'denorm' in indices[collection].keys():
+        if collection == 'campaigns':
             for c in coll:
-                if indices[collection]['denorm'] in c.keys():
-                    ls = c[indices[collection]['denorm']]
-                    for l in ls:
-                        c[indices[collection]['denorm'] + 'Id'] = l['_id']
-                        result.append(c)
-                else:
+                if c['status'] == 20 or c['status'] == 99 and c["stop"] :
                     result.append(c)
-        else:
-            result += coll
     return result
 
 def stats_query(ids, headers):
@@ -177,8 +170,6 @@ if org_id == 'not set':
 #get list of orderLines
 
 #make a list of orgs and suborgs
-orgs = get_orgs(org_id)
-
 #Print column headings
 #  [ <key>, <label> ]#
 fields = {
@@ -220,6 +211,12 @@ indices = {
         'denorm': 'orderLines',
     },
 }
+orgs = get_orgs(org_id)
+print orgs
+print len(get_collection('campaigns',orgs))
+sys.exit()
+
+
 
 valid_camps = valid_campaign_list(orgs)
 valid_ols = valid_ol_list(orgs, valid_camps)
@@ -232,6 +229,8 @@ def check_row(row, good_list, collection):
     if collection == 'creatives' and set(row['orderLineIds']) & set(valid_ols):
         return True
     return False
+
+
 
 for level in indices.keys():
     rows = []
