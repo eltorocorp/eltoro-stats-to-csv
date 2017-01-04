@@ -1,7 +1,7 @@
 #/usr/bin/python
 
 import requests, sys, ast
-from datetime import date,timedelta
+from datetime import date,timedelta,datetime
 
 #Prod gateway
 base_url = 'https://api-prod.eltoro.com'
@@ -55,9 +55,14 @@ def get_campaigns(org_list):
             resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
             coll += resp['results']
 
+        ## Filter for only active within last 7 days
+        recentdate = date.today() - timedelta(days=7)
         for c in coll:
-            if c['status'] == 20 or c['status'] == 99 and c["stop"]:
-                result.append(c)
+            try:
+                if c['status'] == 20 or c['status'] == 99:# and c["stop"] > recentdate :
+                    result.append(c)
+            except:
+                pass
     return result
 
 
@@ -66,41 +71,54 @@ def get_orderLines(campaigns):
     ols = []
     creatives=[]
     suffix = '&pagingLimit=10'
-    for camp in campaigns:
-        page = 1
-        query = '/' + collection + '?campaignId=' + camp["_id"] + suffix
+    page = 1
+    query = '/' + collection + "?" + suffix
+    resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
+    coll = resp['results']
+    paging = resp['paging']
+    while paging['total'] > paging['limit'] * page:
+        page += 1
         resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
-        coll = resp['results']
-        paging = resp['paging']
-        while paging['total'] > paging['limit'] * page:
-            page += 1
-            resp = requests.get(base_url + query + '&pagingPage=' + str(page), headers=headers).json()
-            coll += resp['results']
+        coll += resp['results']
     allols = coll
 
     for c in allols:
-        oldata = {
-            ##  CSV Field Header: Field to Populate it wit
-                "orderLineId":c["_id"],
-                "campaignId":c["campaignId"],
-                "targetType":c["targetType"],
-                "creativeType":c["creativeType"],
-                "orderLineName":c["name"],
-                "campaignName":c["campaignName"],
-                "refId":c["refId"],
-                "start":c["start"],
-                "stop":c["stop"]
-        }
-        ols.append(oldata)
-
-        for cre in c["creatives"]:
-            creative={
-                    "creativeId":cre["_id"],
-                    "orderLineId":cre["orderLineIds"],
-                    "creativeName":cre["name"],
-                    "size":cre["size"],
-                    }
-            creatives.append(creative)
+        for camp in campaigns:
+            if c["campaign"]["_id"] == camp["_id"]:
+                #print camp["_id"] + " has ol " + c["_id"] + " on it"
+                try:
+                    refId=c["refId"]
+                except:
+                    refId=""
+                    pass
+                oldata = {
+                    ##  CSV Field Header: Field to Populate it wit
+                        "orderLineId":c["_id"],
+                        "campaignId":c["campaignId"],
+                        "targetType":c["targetType"],
+                        "creativeType":c["creativeType"],
+                        "orderLineName":c["name"],
+                        "campaignName":c["campaign"]["name"],
+                        "refId":refId,
+                        "start":c["start"],
+                        "stop":c["stop"]
+                }
+                ols.append(oldata)
+                olid=c["_id"]
+                for cre in c["creatives"]:
+                    try:
+                        size=cre["size"]
+                    except:
+                        size=0
+                        pass
+                    creative={
+                            "creativeId":cre["_id"],
+                            "orderLineId":olid,
+                            "creativeName":cre["name"],
+                            "size":size,
+                            }
+                #    print creative
+                    creatives.append(creative)
 
     return ols,creatives
 
@@ -248,10 +266,10 @@ indices = {
 }
 orgs = get_orgs(org_id)
 print orgs
-print len(get_campaigns(orgs))
+print str(len(get_campaigns(orgs)))+ " campaigns"
 ols,creatives=get_orderLines(get_campaigns(orgs))
-print len(ols)
-print len(creatives)
+print str(len(ols)) + " order lines"
+print str(len(creatives)) + " creatives"
 sys.exit()
 
 
