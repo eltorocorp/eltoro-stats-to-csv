@@ -1,6 +1,6 @@
 #/usr/bin/python
 
-import requests, sys, ast
+import requests, sys, ast, io
 from datetime import date,timedelta,datetime
 
 #Prod gateway
@@ -197,9 +197,9 @@ except IndexError:
     org_id = 'not set'
 
 #create output files
-creative_csv = open('creative' + str(start) + '.csv', 'w')
-orderLine_csv = open('orderLine' + str(start) + '.csv', 'w')
-campaign_csv = open('campaign' + str(start) + '.csv', 'w')
+creative_csv = io.open('creative' + str(start) + '.csv', 'w', newline='\r\n')
+orderLine_csv = io.open('orderLine' + str(start) + '.csv', 'w', newline='\r\n')
+campaign_csv = io.open('campaign' + str(start) + '.csv', 'w', newline='\r\n')
 
 
 ## Do all of the login stuff here
@@ -267,7 +267,6 @@ for level in indices.keys():
     ids={}
     val = ""
     row1 = 'Date,Hour,Clicks,Imps,'
-
     #Write a row for each collection belonging to each org
     if level == 'orderLines':
         rows = ols
@@ -284,7 +283,7 @@ for level in indices.keys():
     for f,value in rows[0].iteritems():
         row1 += str(f) + ','
     row1 = row1[:-1]
-    indices[level]['file'].write(row1 + '\n')
+    indices[level]['file'].write(unicode(row1 + '\n'))
 
     print "Running Stats for " + level
     for row in rows:
@@ -310,17 +309,17 @@ for level in indices.keys():
         for obs in stats:
             print obs
             if i > 4 and i < 29:
-                indices[level]['file'].write(str(start) + ',')
-                indices[level]['file'].write(str(i - 5) + ',')
-                indices[level]['file'].write(str(obs['clicks']) + ',')
-                indices[level]['file'].write(str(obs['imps']) + ',')
+                indices[level]['file'].write(unicode(str(start) + ','))
+                indices[level]['file'].write(unicode(str(i - 5) + ','))
+                indices[level]['file'].write(unicode(str(obs['clicks']) + ','))
+                indices[level]['file'].write(unicode(str(obs['imps']) + ','))
                 for f,value in row.iteritems():
                     if isinstance(value,basestring):
                         val = val + '"' + str(value) + '"'+ ","
                     else:
                         val = val + str(value)+ ","
                 val = val[:-1]
-                indices[level]['file'].write(val + '\n')
+                indices[level]['file'].write(unicode(val + '\n'))
                 val = ""
             i += 1
 
