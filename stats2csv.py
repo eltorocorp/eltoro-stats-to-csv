@@ -139,7 +139,8 @@ def stats_query(ids, headers):
         org_id +
         '&campaignId=' + ids['campaigns'] +
         '&orderLineId=' + ids['orderLines'] +
-        '&creativeId=' + ids['creatives']
+        '&creativeId=' + ids['creatives'] +
+        '&disableCache=true'
     )
     r = requests.get(base_url + query, headers=headers).json()
     #print query
