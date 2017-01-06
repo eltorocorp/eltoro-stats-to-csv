@@ -163,9 +163,8 @@ def stats_query_tmp(ids, headers):
 # '&org_id=' + org_id +
     base_url="http://172.30.1.151:9002"
     r = requests.get(base_url + query).json()
-    print query
+    #print query
     return r["results"]
-
 # Parse arguments and verify some things, default others
 try:
     try:
@@ -299,10 +298,12 @@ for level in indices.keys():
             row1 += 'campaignId'
             break
 
-    print row1
+    print level + " Column headers: " + row1
     indices[level]['file'].write(row1 + '\r\n')
 
     print "Running Stats for " + level
+    totalclicks=0
+    totalimps=0
     for row in rows:
         #ids = build_ids(level, row[id])
         if level == "campaigns":
@@ -321,15 +322,20 @@ for level in indices.keys():
 #        stats = stats_query(ids, headers)
 #        print stats
         stats = stats_query_tmp(ids, headers)
-        #print stats
+#        print stats
         i = 0
         for obs in stats:
             #print obs
+            #
+            ## This is accounting for GMT->EST by getting two days worth and running on the proper window...
+            ## Raw Log data is in GMT
             if i > 4 and i < 29:
                 indices[level]['file'].write(str(start) + ',')
                 indices[level]['file'].write(str(i - 5) + ',')
                 indices[level]['file'].write(str(obs['clicks']) + ',')
+                totalclicks = totalclicks + obs['clicks']
                 indices[level]['file'].write(str(obs['imps']) + ',')
+                totalimps = totalimps + obs['imps']
                 if level == "campaigns":
                     indices[level]['file'].write(str(row['orgId']) + ',')
                     indices[level]['file'].write(str(row['campaignId']))
@@ -350,5 +356,6 @@ for level in indices.keys():
                 indices[level]['file'].write('\r\n')
                 val = ""
             i += 1
-
+    print "Total Clicks for "+ level +" : " + str(totalclicks)
+    print "Total Imps for "+ level +" : " + str(totalimps)
 sys.exit()
