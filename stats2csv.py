@@ -75,6 +75,8 @@ for level in FILES:
         i = 0
         ## Raw Log data is in UTC
         for obs in stats:
+            if obs['imps'] == 0:
+                continue
             FILES[level]['file'].write(str(OPTIONS['start']) + ',')
             FILES[level]['file'].write(str(i) + ',')
             FILES[level]['file'].write(str(obs['clicks']) + ',')
